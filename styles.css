@@ -11,7 +11,8 @@ a {
 }
 
 input,
-select {
+select,
+#submit {
     border: 1px solid #ccc;
     border-radius: 3px;
     padding: 10px;
