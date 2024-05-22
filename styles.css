@@ -45,6 +45,16 @@ select {
     font-size: 0.8rem;
 }
 
+.submission-error {
+    display: none;
+    padding: 20px 10px;
+    background-color: rgb(255, 216, 223);
+    border: 3px solid red;
+    border-radius: 5px;
+    color: red;
+    text-align: center;
+}
+
 .center-text {
     text-align: center;
 }

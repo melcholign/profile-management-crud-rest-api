@@ -19,6 +19,7 @@ const LENGTHS = {
 
 const formContainer = document.querySelector('.form-container')
 const inputFields = document.querySelectorAll('input, select')
+const submissionError = document.querySelector('.submission-error')
 
 const errorMessages = {}
 
@@ -48,11 +49,44 @@ inputFields.forEach(field => {
     })
 })
 
+
+let submitted = false
+
 formContainer.addEventListener('submit', e => {
-    if (!validateForm()) {
-        e.preventDefault()
+    e.preventDefault()
+
+    if (!submitted && validateForm()) {
+        submitted = true
+
+        postForm(formContainer.querySelector('form')).then(() => {
+            submitted = false
+        })
     }
 })
+
+async function postForm(formElement) {
+    const formData = Object.fromEntries((new FormData(formElement)).entries())
+
+    fetch('http://localhost:3000/registration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+    })
+        .then(response => {
+            if (response.ok) {
+                window.location.replace('http://localhost:3000/login')
+            }
+
+            return response.text()
+        })
+        .then(text => {
+            submissionError.textContent = text
+            submissionError.style.display = 'block'
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+}
 
 function validateForm() {
     let isValid = true
