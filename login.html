@@ -13,17 +13,19 @@
     <div class="form-container">
 
         <h1 class="center-text">Login Form</h1>
-
-        <form action="/login" method="post">
+        <p class="submission-error"></p>
+        <form id="login-form" action="" method="">
 
             <p>
                 <label for="email">Email:</label>
-                <input type="email" id="email" name="email" class="full-width border-box">
+                <input type="text" id="email" name="email" class="full-width border-box">
+                <span class="error-span"></span>
             </p>
 
             <p>
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" class="full-width border-box">
+                <span class="error-span"></span>
             </p>
 
             <p>
