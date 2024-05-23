@@ -55,20 +55,24 @@ app.get('/registration', (req, res) => {
     res.sendFile(path.join(__dirname, 'registration.html'))
 })
 
-app.post('/registration', (req, res) => {
-    body = req.body
-    executeQuery(`SELECT email from profile where email = '${body.email}'`).then(results => {
-        if (results.length != 0) {
-            res.status(400).send(`A profile with the email ${results[0].email} is already registered.`)
-        } else {
-            executeQuery(`INSERT INTO profile (first_name, last_name, gender, date_of_birth, email, password, image_url)
-            VALUES ('${body.first_name}', '${body.last_name}', '${body.gender}', '${body.date_of_birth}', '${body.email}', '${body.password}', null)`)
-                .then(() => {
-                    res.sendStatus(200)
-                })
-        }
-    })
+app.post('/registration', async (req, res) => {
+    const data = req.body
+
+    const { results } = await executeQuery(`SELECT email from profile where email = '${data.email}'`)
+
+    console.log(results)
+
+    if (results.length != 0) {
+        res.status(400).send(`A profile with the email ${results[0].email} is already registered.`)
+        return
+    } 
+
+    await executeQuery(`INSERT INTO profile (first_name, last_name, gender, date_of_birth, email, password, image_url)
+            VALUES ('${data.first_name}', '${data.last_name}', '${data.gender}', '${data.date_of_birth}', '${data.email}', '${data.password}', null)`)
+
+    res.sendStatus(200)
 })
+
 
 // run server
 app.listen(port, () => console.log(`Server is started at http://localhost:${port}/`))
@@ -76,16 +80,14 @@ app.listen(port, () => console.log(`Server is started at http://localhost:${port
 
 function executeQuery(query) {
     return new Promise((resolve, reject) => {
-
-        connection.query(query, (err, results) => {
+        connection.query(query, (err, results, fields) => {
 
             if (err) {
                 reject(err)
-            } else {
-                resolve(results)
             }
-
+            
+            resolve({ results, fields })
+            
         })
-
     })
 }
