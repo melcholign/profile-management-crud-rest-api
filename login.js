@@ -58,7 +58,7 @@ function validateForm() {
         isValid = false
     }
 
-    return true
+    return isValid
 }
 
 function removeFieldError(field) {

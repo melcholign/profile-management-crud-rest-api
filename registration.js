@@ -45,7 +45,7 @@ inputFields.forEach(field => {
     field.addEventListener('input', () => {
         field.classList.remove('error-field')
         errorSpan = document.querySelector(`#${field.id} + .error-span`)
-        errorSpan.style.display = 'none'
+        errorSpan.textContent = ''
     })
 })
 

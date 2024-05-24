@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./profile.js" defer></script>
+</head>
+
+<body>
+    <dialog>
+        <p>Model dialog</p>
+        <div>
+            <button id="confirm"></button>
+            <button id="cancel"></button>
+        </div>
+    </dialog>
+    <div class="profile-container">
+        <div>
+            <div class="img-container">
+            
+            </div>
+            <button id="upload-img" type="button">Upload Image</button>
+        </div>
+        <div>
+            <form action="" class="info-container">
+                <h1>
+                    My Profile
+                    <button id="edit" type="button">Edit</button>
+                    <button id="delete" type="button">Delete</button>
+                </h1>
+                <p>
+                    <label for="first-name">First Name:</label>
+                    <input type="text" name="first_name" id="first-name" class="full-width border-box" data-required
+                        disabled value="John">
+                    <span class="error-span"></span>
+                </p>
+
+                <p>
+                    <label for="last-name">Last Name:</label>
+                    <input type="text" name="last_name" id="last-name" class="full-width border-box" data-required
+                        disabled value="Doe">
+                    <span class="error-span"></span>
+                </p>
+
+                <p>
+                    <label for="date-of-birth">Date of Birth:</label>
+                    <input type="date" name="date_of_birth" id="date-of-birth" class="full-width border-box"
+                        data-required disabled value="2001-01-01">
+                    <span class="error-span"></span>
+                </p>
+
+                <p>
+
+                </p>
+
+                <p>
+                    <label for="gender">Gender:</label>
+                    <select name="gender" id="gender" class="full-width border-box" data-required disabled>
+                        <option value="" disabled>Select Gender</option>
+                        <option value="male" selected>Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <span class="error-span"></span>
+                </p>
+
+
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
