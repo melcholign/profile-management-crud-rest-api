@@ -185,13 +185,12 @@ function validateForm() {
 function removeFieldError(field) {
     field.classList.remove('error-field')
     errorSpan = document.querySelector(`#${field.id} + .error-span`)
-    errorSpan.style.display = 'none'
+    errorSpan.style.textContent= ''
 }
 
 function addFieldError(field, errorMessage) {
     field.classList.add('error-field')
     errorSpan = document.querySelector(`#${field.id} + .error-span`)
-    errorSpan.style.display = 'block'
     errorSpan.textContent = errorMessage
 }
 
