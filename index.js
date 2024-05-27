@@ -1,8 +1,36 @@
 const express = require('express')
-const bodyParser = require('body-parser')
+const session = require('express-session')
 const mysql = require('mysql')
+const MySQLStore = require('express-mysql-session')(session);
+const bodyParser = require('body-parser')
 const cors = require('cors')
 const path = require('path')
+
+// Create an app instance of express and bind middlewares to it
+const app = express()
+app.use(express.static(__dirname))
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json())
+app.use(cors())
+
+
+// use session middleware
+const options = {
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'qwerty123',
+    database: 'profile_manager',
+}
+
+const sessionStore = new MySQLStore(options)
+
+app.use(session({
+    secret: 'session profile',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+}))
 
 // establish connection and connect with the database
 const connection = mysql.createConnection({
@@ -22,25 +50,23 @@ connection.connect(err => {
     }
 })
 
-// Create an app instance of express and bind middlewares to it
-const app = express()
-app.use(express.static(__dirname))
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json())
-app.use(cors())
-
 // server port id
 const port = 3000
 
 // api endpoints
 
 app.get('/', (req, res) => {
-    res.send('Hello world')
+    res.send('Welcome!');
 })
 
 
 // login endpoints
 app.get('/login', (req, res) => {
+    if (req.session.authenticated) {
+        res.send(req.session.user)
+        return
+    }
+
     res.sendFile(path.join(__dirname, 'login.html'))
 })
 
@@ -53,6 +79,9 @@ app.post('/login', async (req, res) => {
         res.status(400).send('The email or password you have entered is incorrect.')
         return
     }
+
+    req.session.authenticated = true
+    req.session.user = results[0].email
 
     res.sendStatus(200)
 })
