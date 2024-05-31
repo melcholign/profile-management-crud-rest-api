@@ -1,5 +1,6 @@
 const editBtn = document.querySelector('#edit')
 const deleteBtn = document.querySelector('#delete')
+const logouBtn = document.querySelector('#logout')
 const uploadImgBth = document.querySelector('#upload-img')
 
 // form elements
@@ -16,9 +17,19 @@ lastNameField.addEventListener('input', () => removeFieldError(lastNameField))
 document.addEventListener('DOMContentLoaded', async () => {
 
     const profileInfo = await fetch('http://localhost:3000/profile', {
-        headers: { 'Accept': 'application/json' },
-        method: 'GET',
-    }).then(res => res.json())
+        Accept: 'application/json',
+    })
+        .then(res => {
+            if (!res.ok) {
+                window.location.replace('./login.html')
+            }
+
+            const output = res.json()
+            console.log(output)
+            return output
+        })
+
+    console.log(profileInfo)
 
     firstNameField.value = profileInfo.first_name
     lastNameField.value = profileInfo.last_name
@@ -106,6 +117,14 @@ deleteBtn.addEventListener('click', e => {
         dialogBooleanEvent(deleteProfile, null, 'Do you confirm the deletion of your profile?')
     }
 
+})
+
+logouBtn.addEventListener('click', () => {
+    fetch('http://localhost:3000/logout', {
+        method: 'POST'
+    }).then(() => {
+        window.location.replace('http://localhost:3000/login.html')
+    })
 })
 
 // runs functions based on the choice made in yes/no dialogs
