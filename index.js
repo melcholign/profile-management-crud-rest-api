@@ -5,6 +5,9 @@ const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const path = require('path')
+const bcrypt = require('bcrypt')
+
+const saltRounds = 10
 
 // Create an app instance of express and bind middlewares to it
 const app = express()
@@ -62,25 +65,24 @@ app.get('/', (req, res) => {
 
 // login endpoints
 app.get('/login', (req, res) => {
-    if (req.session.authenticated) {
-        res.send(req.session.user)
-        return
-    }
 
-    res.sendFile(path.join(__dirname, 'login.html'))
+    res.redirect('login.html')
 })
 
 app.post('/login', async (req, res) => {
     const data = req.body
 
-    const { results } = await executeQuery(`SELECT * FROM profile WHERE email = '${data.email}' AND password = '${data.password}'`)
+    const { results } = await executeQuery(`SELECT * FROM profile WHERE email = '${data.email}'`)
+    const isInvalidLogin = results.length === 0 ||
+        !(await bcrypt.compare(data.password, results[0].password))
 
-    if (results.length === 0) {
+    if (isInvalidLogin) {
         res.status(400).send('The email or password you have entered is incorrect.')
         return
     }
 
     req.session.authenticated = true
+    req.session.remember = data.rememberMe
     req.session.user = results[0].email
 
     res.sendStatus(200)
@@ -101,12 +103,29 @@ app.post('/registration', async (req, res) => {
         return
     }
 
+    const hash = await bcrypt.hash(data.password, saltRounds)
+
     await executeQuery(`INSERT INTO profile (first_name, last_name, gender, date_of_birth, email, password, image_url)
-            VALUES ('${data.first_name}', '${data.last_name}', '${data.gender}', '${data.date_of_birth}', '${data.email}', '${data.password}', null)`)
+            VALUES ('${data.first_name}', '${data.last_name}', '${data.gender}', '${data.date_of_birth}', '${data.email}', 
+                '${hash}', null)`)
 
     res.sendStatus(200)
 })
 
+// profile api endpoints
+
+app.get('/profile', async (req, res) => {
+
+    if (req.accepts('text/html')) {
+        res.redirect('profile.html')
+        return
+    }
+
+    const { results } = await executeQuery(`SELECT first_name, last_name, date_of_birth, gender FROM profile where email = '${req.session.user}'`)
+    results[0].date_of_birth = results[0].date_of_birth.toISOString().slice(0, 10)
+
+    res.json(results[0])
+})
 
 // run server
 app.listen(port, () => console.log(`Server is started at http://localhost:${port}/`))

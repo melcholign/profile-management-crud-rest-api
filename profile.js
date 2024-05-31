@@ -4,11 +4,28 @@ const uploadImgBth = document.querySelector('#upload-img')
 
 // form elements
 const infoForm = document.querySelector('.info-container')
-const infoInputs = infoForm.querySelectorAll('input, select');
-const firstNameField = infoInputs[0]
-const lastNameField = infoInputs[1]
+const firstNameField = document.querySelector('#first-name')
+const lastNameField = document.querySelector('#last-name')
+const dateOfBirthField = document.querySelector('#date-of-birth')
+const genderField = document.querySelector('#gender')
+const infoInputs = [firstNameField, lastNameField, dateOfBirthField, genderField]
+
 firstNameField.addEventListener('input', () => removeFieldError(firstNameField))
 lastNameField.addEventListener('input', () => removeFieldError(lastNameField))
+
+document.addEventListener('DOMContentLoaded', async () => {
+
+    const profileInfo = await fetch('http://localhost:3000/profile', {
+        headers: { 'Accept': 'application/json' },
+        method: 'GET',
+    }).then(res => res.json())
+
+    firstNameField.value = profileInfo.first_name
+    lastNameField.value = profileInfo.last_name
+    dateOfBirthField.value = profileInfo.date_of_birth
+    genderField.value = profileInfo.gender
+
+})
 
 // modal dialog
 const dialogBox = document.querySelector('dialog')
@@ -185,7 +202,7 @@ function validateForm() {
 function removeFieldError(field) {
     field.classList.remove('error-field')
     errorSpan = document.querySelector(`#${field.id} + .error-span`)
-    errorSpan.style.textContent= ''
+    errorSpan.style.textContent = ''
 }
 
 function addFieldError(field, errorMessage) {

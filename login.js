@@ -1,6 +1,7 @@
 const submitBtn = document.querySelector('#submit')
 const emailField = document.querySelector('#email')
 const passwordField = document.querySelector('#password')
+const rememberMeCheckBox = document.querySelector('#remember-me')
 const submissionError = document.querySelector('.submission-error')
 
 emailField.addEventListener('input', () => removeFieldError(emailField))
@@ -23,13 +24,14 @@ submitBtn.addEventListener('click', e => {
                 body: JSON.stringify({
                     email: emailField.value,
                     password: passwordField.value,
+                    rememberMe: rememberMeCheckBox.checked,
                 })
             })
                 .then(res => {
 
                     if (res.ok) {
                         ok = true
-                        window.location.replace('http://localhost:3000/')
+                        window.location.replace('./profile.html')
                     }
 
                     return res.text()
@@ -64,7 +66,7 @@ function validateForm() {
 function removeFieldError(field) {
     field.classList.remove('error-field')
     errorSpan = document.querySelector(`#${field.id} + .error-span`)
-    errorSpan.style.display = 'none'
+    errorSpan.textContent = ''
 }
 
 function addFieldError(field, errorMessage) {
