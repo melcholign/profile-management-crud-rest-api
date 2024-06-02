@@ -87,10 +87,9 @@ app.post('/login', async (req, res) => {
     }
 
     // if login is valid
-    req.session.authenticated = {
-        user: results[0].email,
-        remember: loginData.rememberMe
-    }
+    req.session.authenticated = true
+    req.session.user = results[0].email
+    req.session.remember = loginData.rememberMe
 
     req.session.save(() => res.sendStatus(200))
 })
@@ -98,7 +97,7 @@ app.post('/login', async (req, res) => {
 // LOGOUT endpoint
 
 app.post('/logout', (req, res) => {
-    delete req.session.authenticated
+    req.session.authenticated = false
 
     return res.sendStatus(200)
 })
@@ -135,22 +134,44 @@ app.post('/registration', async (req, res) => {
 app.get('/profile', async (req, res) => {
 
     // validation criteria: user is authenticated
-    if (req.session.authenticated === undefined) {
+    if (!req.session.authenticated) {
         res.sendStatus(400)
         return
     }
 
-    const { results } = await executeQuery(`SELECT first_name, last_name, date_of_birth, gender FROM profile where email = '${req.session.authenticated.user}'`)
+    const { results } = await executeQuery(`SELECT first_name, last_name, date_of_birth, gender FROM profile where email = '${req.session.user}'`)
     console.log(results)
     results[0].date_of_birth = results[0].date_of_birth.toISOString().slice(0, 10)
 
 
     // if the logged-in state is transient, then the next call to this api will return an error
-    if(!req.session.authenticated.remember) {
-        delete req.session.authenticated
+    if(!req.session.remember) {
+        req.session.authenticated = false
     }
 
     res.json(results[0])
+})
+
+app.put('/profile', async (req, res) => {
+    const updateData = req.body
+    let updateQuery = `UPDATE profile SET `
+
+    for(let key in updateData) {
+        updateQuery +=  `${key} = "${updateData[key]}", `
+    }
+
+    updateQuery = updateQuery.slice(0, updateQuery.length - 2)
+    updateQuery += ` WHERE email = "${req.session.user}"`
+
+    await executeQuery(updateQuery)
+
+    res.sendStatus(200)
+})
+
+app.delete('/profile', async (req, res) => {
+    await executeQuery(`DELETE FROM profile WHERE email = '${req.session.user}'`)
+
+    res.sendStatus(200)
 })
 
 // run server

@@ -68,7 +68,7 @@ editBtn.addEventListener('click', e => {
                 // disabling the buttons prevent any interaction while the asynchronous call to the server is processing
                 editBtn.disabled = true
                 deleteBtn.deleteBtn = true
-                //await serverSideUpdate()
+                await serverSideUpdate()
             }
 
             exitEditMode()
@@ -110,10 +110,6 @@ deleteBtn.addEventListener('click', e => {
 
     } else {
 
-        const deleteProfile = () => {
-            console.log('Delete')
-        }
-
         dialogBooleanEvent(deleteProfile, null, 'Do you confirm the deletion of your profile?')
     }
 
@@ -133,15 +129,15 @@ function dialogBooleanEvent(onconfirm, oncancel, dialogText = 'Do you confirm', 
 
     confirmBtn = dialogBox.querySelector('#confirm')
     confirmBtn.textContent = confirmText
-    confirmBtn.addEventListener('click', () => {
-        onconfirm()
+    confirmBtn.addEventListener('click', async () => {
+        await onconfirm()
         dialogBox.close()
     })
 
     cancelBtn = dialogBox.querySelector('#cancel')
     cancelBtn.textContent = cancelText
-    cancelBtn.addEventListener('click', () => {
-        if (oncancel) oncancel()
+    cancelBtn.addEventListener('click', async () => {
+        if (oncancel) await oncancel()
         dialogBox.close()
     })
 
@@ -234,26 +230,21 @@ function requirementValidation(field) {
     return field.value !== ''
 }
 
-// async function deleteProfile() {
-//     new Promise((resolve, reject) => {
-//         fetch('http://localhost:3000/profile', {
-//             method: 'DELETE'
-//         })
-//     })
-// }
+async function deleteProfile() {
+    await fetch('http://localhost:3000/profile', {
+        method: 'DELETE'
+    }).then(res => {
+        if (res.ok) {
+            window.location.replace('/login.html')
+        }
+    })
+}
 
-// async function serverSideUpdate() {
-//     new Promise((resolve, reject) => {
-//         fetch('http://localhost:3000/profile', {
-//             method: 'PUT',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify(updateInfo),
-//         }).then(res => {
-//             if (res.ok) {
-//                 resolve()
-//             }
+async function serverSideUpdate() {
+    await fetch('http://localhost:3000/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedInfo),
+    }).then(res => res.ok)
 
-//             reject()
-//         })
-//     })
-// }
+}
