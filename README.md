@@ -9,14 +9,14 @@
 ## Installation and Setup Procedure
 
 - clone the repository on your local machine.
-- run the command.
+- run the command
 ``npm install``
   to install and update all the relevant packages and dependencies required to run the project.
 - Execute profile_manager.sql using any MySQL client.
 - If access to the database is password-protected, go to line 54 in index.js file and change the password key to your own.
   Otherwise, make it an empty string.
 
-**To run the project, use node index.js**
+**To run the project, run the command ``node index.js``**
 
 ## Project Structure
 
