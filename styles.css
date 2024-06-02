@@ -158,7 +158,7 @@ dialog {
     box-sizing: border-box;
 }
 
-#profile-image {
+#profile-img {
     padding: 10px 0px;
     border: none;
 }
@@ -186,4 +186,20 @@ dialog {
 
 #logout:hover {
     background-color: #e0e0e0;
+}
+
+#img-upload {
+    display: none;
+}
+
+.img-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.img-container img {
+    visibility: hidden;
+    width: 100%;
+    height: auto;
 }

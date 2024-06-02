@@ -1,3 +1,4 @@
+
 const PATTERNS = {
     email: {
         pattern: /^[A-Za-z0-9]+([_\.\-][A-Za-z0-9]+)*@([A-Za-z0-9]+-?[A-Za-z0-9]+)+(\.[a-z]{2,3}){1,2}$/,
@@ -63,33 +64,49 @@ formContainer.addEventListener('submit', e => {
             submitted = false
         })
     }
+
+    window.scrollTo(0, 50)
 })
 
 async function postForm(formElement) {
     const formData = Object.fromEntries((new FormData(formElement)).entries())
 
     submitBtn.disabled = true
-    fetch('http://localhost:3000/registration', {
+    const resText = await fetch('http://localhost:3000/api/registration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
     })
         .then(response => {
             if (response.ok) {
+                uploadImg()
                 window.location.replace('http://localhost:3000/login.html')
+
+            } else {
+                submitBtn.disabled = false
+                return response.text()
             }
+        }).then(text => text)
 
-            submitBtn.disabled = false
+    if (resText) {
+        submissionError.textContent = resText
+        submissionError.style.display = 'block'
+        window.scrollTo(0, 0)
+    }
 
-            return response.text()
+}
+
+function uploadImg() {
+    const imgField = document.querySelector('#profile-img')
+    if (imgField.files.length) {
+        const formData = new FormData()
+        formData.append('file', imgField.files[0])
+
+        fetch('http://localhost:3000/api/profile/image', {
+            method: 'POST',
+            body: formData,
         })
-        .then(text => {
-            submissionError.textContent = text
-            submissionError.style.display = 'block'
-        })
-        .catch((err) => {
-            console.log(err)
-        })
+    }
 }
 
 function validateForm() {

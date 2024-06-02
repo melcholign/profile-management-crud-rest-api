@@ -1,21 +1,30 @@
 const express = require('express')
+const app = express()
+
+const fs = require('fs')
+const path = require('path')
 const session = require('express-session')
 const mysql = require('mysql')
 const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const path = require('path')
-const bcrypt = require('bcrypt');
 
+const bcrypt = require('bcrypt');
 const saltRounds = 10
 
-// Create an app instance of express and bind middlewares to it
-const app = express()
-app.use(express.static(__dirname))
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json())
-app.use(cors())
+const multer = require('multer')
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './img');
+    },
 
+    filename: (req, file, cb) => {
+        const fileExtension = file.originalname.slice(file.originalname.lastIndexOf('.'))
+        cb(null, `${req.session.user}${fileExtension}`)
+    },
+})
+
+const upload = multer({ storage })
 
 // use session middleware
 const options = {
@@ -57,19 +66,25 @@ connection.connect(err => {
     }
 })
 
+// Create an app instance of express and bind middlewares to it
+app.use(express.static(__dirname))
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json())
+app.use(cors())
+
 // server port id
 const port = 3000
 
 // api endpoints
 
 app.get('/', (req, res) => {
-    res.send('Welcome!');
+    res.redirect('./login.html');
 })
 
 
 // LOGIN endpoints
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
 
     const loginData = req.body
 
@@ -94,9 +109,9 @@ app.post('/login', async (req, res) => {
     req.session.save(() => res.sendStatus(200))
 })
 
-// LOGOUT endpoint
+// /api/logout endpoint
 
-app.post('/logout', (req, res) => {
+app.post('//api/logout', (req, res) => {
     req.session.authenticated = false
 
     return res.sendStatus(200)
@@ -104,7 +119,7 @@ app.post('/logout', (req, res) => {
 
 // REGISTRATION endpoints
 
-app.post('/registration', async (req, res) => {
+app.post('/api/registration', upload.single('file'), async (req, res) => {
 
     const registrationData = req.body
 
@@ -126,12 +141,14 @@ app.post('/registration', async (req, res) => {
             VALUES ('${registrationData.first_name}', '${registrationData.last_name}', '${registrationData.gender}',
             '${registrationData.date_of_birth}', '${registrationData.email}',  '${passwordHash}', null)`)
 
-    res.sendStatus(200)
+    req.session.user = registrationData.email
+
+    req.session.save(() => res.sendStatus(200))
 })
 
 // PROFILE endpoints
 
-app.get('/profile', async (req, res) => {
+app.get('/api/profile', async (req, res) => {
 
     // validation criteria: user is authenticated
     if (!req.session.authenticated) {
@@ -140,24 +157,30 @@ app.get('/profile', async (req, res) => {
     }
 
     const { results } = await executeQuery(`SELECT first_name, last_name, date_of_birth, gender FROM profile where email = '${req.session.user}'`)
-    console.log(results)
     results[0].date_of_birth = results[0].date_of_birth.toISOString().slice(0, 10)
 
+    results[0]['profileImgSrc'] = await new Promise(resolve => {
+        fs.readdir('./img', (err, files) => {
+            const legalExtensions = ['.png', '.jpg', '.jpeg']
+            const imgFilenames = files.filter(file => file.startsWith(req.session.user) && legalExtensions.some(ext => path.extname(file) == ext))
+            resolve(imgFilenames.length ? './img/' + imgFilenames[0] : '')
+        })
+    })
 
     // if the logged-in state is transient, then the next call to this api will return an error
-    if(!req.session.remember) {
+    if (!req.session.remember) {
         req.session.authenticated = false
     }
 
     res.json(results[0])
 })
 
-app.put('/profile', async (req, res) => {
+app.put('/api/profile', async (req, res) => {
     const updateData = req.body
     let updateQuery = `UPDATE profile SET `
 
-    for(let key in updateData) {
-        updateQuery +=  `${key} = "${updateData[key]}", `
+    for (let key in updateData) {
+        updateQuery += `${key} = "${updateData[key]}", `
     }
 
     updateQuery = updateQuery.slice(0, updateQuery.length - 2)
@@ -168,10 +191,15 @@ app.put('/profile', async (req, res) => {
     res.sendStatus(200)
 })
 
-app.delete('/profile', async (req, res) => {
+app.delete('/api/profile', async (req, res) => {
     await executeQuery(`DELETE FROM profile WHERE email = '${req.session.user}'`)
 
     res.sendStatus(200)
+})
+
+app.post('/api/profile/image', upload.single('file'), async (req, res) => {
+
+    res.send(req.file.path)
 })
 
 // run server

@@ -1,7 +1,9 @@
 const editBtn = document.querySelector('#edit')
 const deleteBtn = document.querySelector('#delete')
-const logouBtn = document.querySelector('#logout')
-const uploadImgBth = document.querySelector('#upload-img')
+const logoutBtn = document.querySelector('#logout')
+const uploadImgBtn = document.querySelector('#upload-btn')
+
+const profileImg = document.querySelector('.img-container img')
 
 // form elements
 const profileContainer = document.querySelector('.profile-container')
@@ -10,6 +12,7 @@ const firstNameField = infoForm.querySelector('#first-name')
 const lastNameField = infoForm.querySelector('#last-name')
 const dateOfBirthField = infoForm.querySelector('#date-of-birth')
 const genderField = infoForm.querySelector('#gender')
+const imgField = document.querySelector('#img-upload')
 const infoInputs = [firstNameField, lastNameField, dateOfBirthField, genderField]
 // modal dialogs
 const booleanDialog = document.querySelector('dialog.boolean')
@@ -23,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loaderDialog.querySelector('p').textContent = 'Loading Profile..'
     loaderDialog.showModal()
 
-    const profileInfo = await fetch('http://localhost:3000/profile', {
+    const profileInfo = await fetch('http://localhost:3000/api/profile', {
         Accept: 'application/json',
     })
         .then(res => {
@@ -33,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             setTimeout(() => {
                 loaderDialog.close()
-            }, 2000)
+            }, 1000)
 
             const output = res.json()
             return output
@@ -43,6 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     lastNameField.value = profileInfo.last_name
     dateOfBirthField.value = profileInfo.date_of_birth
     genderField.value = profileInfo.gender
+    
+    if(profileInfo.profileImgSrc) {
+        profileImg.src = profileInfo.profileImgSrc
+        profileImg.style.visibility = 'visible'
+    }
 
 })
 
@@ -120,11 +128,32 @@ deleteBtn.addEventListener('click', e => {
 
 })
 
-logouBtn.addEventListener('click', () => {
-    fetch('http://localhost:3000/logout', {
+logoutBtn.addEventListener('click', () => {
+    fetch('http://localhost:3000//api/logout', {
         method: 'POST'
     }).then(() => {
         window.location.replace('http://localhost:3000/login.html')
+    })
+})
+
+uploadImgBtn.addEventListener('click', () => {
+    imgField.click()
+})
+
+imgField.addEventListener('input', () => {
+    const formData = new FormData()
+    formData.append('file', imgField.files[0])
+
+    profileImg.visibility = false
+    fetch('http://localhost:3000/api/profile/image', {
+        method: 'POST',
+        body: formData,
+    }).then(async res => {
+        if(res.ok) {
+            profileImg.visibility = false
+            profileImg.src = await res.text()
+            window.location.reload()
+        }
     })
 })
 
@@ -239,7 +268,7 @@ async function deleteProfile() {
     loaderDialog.querySelector('p').textContent = 'Deleting profile...'
     loaderDialog.showModal()
 
-    fetch('http://localhost:3000/profile', {
+    fetch('http://localhost:3000/api/profile', {
         method: 'DELETE'
     }).then(res => {
         if (res.ok) {
@@ -254,7 +283,7 @@ async function deleteProfile() {
 }
 
 async function serverSideUpdate() {
-    await fetch('http://localhost:3000/profile', {
+    await fetch('http://localhost:3000/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedInfo),
