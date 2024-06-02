@@ -20,6 +20,7 @@ const LENGTHS = {
 const formContainer = document.querySelector('.form-container')
 const inputFields = document.querySelectorAll('input, select')
 const submissionError = document.querySelector('.submission-error')
+const submitBtn = document.querySelector('#submit')
 
 const errorMessages = {}
 
@@ -67,6 +68,7 @@ formContainer.addEventListener('submit', e => {
 async function postForm(formElement) {
     const formData = Object.fromEntries((new FormData(formElement)).entries())
 
+    submitBtn.disabled = true
     fetch('http://localhost:3000/registration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,8 +76,10 @@ async function postForm(formElement) {
     })
         .then(response => {
             if (response.ok) {
-                window.location.replace('http://localhost:3000/login')
+                window.location.replace('http://localhost:3000/login.html')
             }
+
+            submitBtn.disabled = false
 
             return response.text()
         })

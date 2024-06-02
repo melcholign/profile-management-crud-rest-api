@@ -4,17 +4,24 @@ const logouBtn = document.querySelector('#logout')
 const uploadImgBth = document.querySelector('#upload-img')
 
 // form elements
-const infoForm = document.querySelector('.info-container')
-const firstNameField = document.querySelector('#first-name')
-const lastNameField = document.querySelector('#last-name')
-const dateOfBirthField = document.querySelector('#date-of-birth')
-const genderField = document.querySelector('#gender')
+const profileContainer = document.querySelector('.profile-container')
+const infoForm = profileContainer.querySelector('.info-container')
+const firstNameField = infoForm.querySelector('#first-name')
+const lastNameField = infoForm.querySelector('#last-name')
+const dateOfBirthField = infoForm.querySelector('#date-of-birth')
+const genderField = infoForm.querySelector('#gender')
 const infoInputs = [firstNameField, lastNameField, dateOfBirthField, genderField]
+// modal dialogs
+const booleanDialog = document.querySelector('dialog.boolean')
+const loaderDialog = document.querySelector('dialog.loader')
 
 firstNameField.addEventListener('input', () => removeFieldError(firstNameField))
 lastNameField.addEventListener('input', () => removeFieldError(lastNameField))
 
 document.addEventListener('DOMContentLoaded', async () => {
+
+    loaderDialog.querySelector('p').textContent = 'Loading Profile..'
+    loaderDialog.showModal()
 
     const profileInfo = await fetch('http://localhost:3000/profile', {
         Accept: 'application/json',
@@ -24,12 +31,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 window.location.replace('./login.html')
             }
 
+            setTimeout(() => {
+                loaderDialog.close()
+            }, 2000)
+
             const output = res.json()
-            console.log(output)
             return output
         })
-
-    console.log(profileInfo)
 
     firstNameField.value = profileInfo.first_name
     lastNameField.value = profileInfo.last_name
@@ -37,9 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     genderField.value = profileInfo.gender
 
 })
-
-// modal dialog
-const dialogBox = document.querySelector('dialog')
 
 // stores the original values of the fields before any modification has been made to them during editing mode
 const originalInfo = {}
@@ -125,33 +130,33 @@ logouBtn.addEventListener('click', () => {
 
 // runs functions based on the choice made in yes/no dialogs
 function dialogBooleanEvent(onconfirm, oncancel, dialogText = 'Do you confirm', confirmText = 'Yes', cancelText = 'No') {
-    dialogBox.querySelector('p').textContent = dialogText
+    booleanDialog.querySelector('p').textContent = dialogText
 
-    confirmBtn = dialogBox.querySelector('#confirm')
+    confirmBtn = booleanDialog.querySelector('#confirm')
     confirmBtn.textContent = confirmText
     confirmBtn.addEventListener('click', async () => {
         await onconfirm()
-        dialogBox.close()
+        booleanDialog.close()
     })
 
-    cancelBtn = dialogBox.querySelector('#cancel')
+    cancelBtn = booleanDialog.querySelector('#cancel')
     cancelBtn.textContent = cancelText
     cancelBtn.addEventListener('click', async () => {
         if (oncancel) await oncancel()
-        dialogBox.close()
+        booleanDialog.close()
     })
 
-    dialogBox.showModal()
+    booleanDialog.showModal()
 }
 
-dialogBox.addEventListener('close', () => {
+booleanDialog.addEventListener('close', () => {
     // remove event listeners on the dialog buttons by cloning and then replacing them
 
-    oldConfirmBtn = dialogBox.querySelector('#confirm')
+    oldConfirmBtn = booleanDialog.querySelector('#confirm')
     newConfirmBtn = oldConfirmBtn.cloneNode(true)
     oldConfirmBtn.parentNode.replaceChild(newConfirmBtn, oldConfirmBtn)
 
-    oldCancelBtn = dialogBox.querySelector('#cancel')
+    oldCancelBtn = booleanDialog.querySelector('#cancel')
     newCancelBtn = oldCancelBtn.cloneNode(true)
     oldCancelBtn.parentNode.replaceChild(newCancelBtn, oldCancelBtn)
 })
@@ -231,11 +236,19 @@ function requirementValidation(field) {
 }
 
 async function deleteProfile() {
-    await fetch('http://localhost:3000/profile', {
+    loaderDialog.querySelector('p').textContent = 'Deleting profile...'
+    loaderDialog.showModal()
+
+    fetch('http://localhost:3000/profile', {
         method: 'DELETE'
     }).then(res => {
         if (res.ok) {
-            window.location.replace('/login.html')
+            profileContainer.style.opacity = 0
+            loaderDialog.querySelector('p').textContent = 'Profile deleted successfully.'
+
+            setTimeout(() => {
+                window.location.replace('/login.html')
+            }, 2000)
         }
     })
 }

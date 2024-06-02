@@ -22,7 +22,7 @@ p {
 }
 
 dialog {
-    border: none;
+    border: 1px solid black;
     border-radius: 10px;
     width: 250px;
 }
@@ -167,6 +167,10 @@ dialog {
     border-radius: 3px;
     background-color: #4caf50;
     color: white;
+}
+
+#submit:disabled {
+    opacity: 0.5;
 }
 
 #logout {
